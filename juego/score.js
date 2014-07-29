@@ -18,7 +18,6 @@ Q.UI.Text.extend("PuntosGoomba", {
 	actualizaPuntaje : function(puntajeGoombas) {
 		//actualiza el label
 		this.p.label = "" + puntajeGoombas;
-		alert("cambia variable goombasMuertos");
 	}
 });
 

@@ -22,7 +22,7 @@ Q.animations("animacionesMario", {
 		frames : [12],
 		rate : 1 / 2,
 		loop : false,
-		trigger:"casiMuerto"
+		trigger : "casiMuerto"
 	}
 });
 
@@ -40,56 +40,78 @@ Q.Sprite.extend("Jugador", {
 			jumpSpeed : -800,
 			speed : 150,
 			//DECLARAMOS NUESTRAS PROPIEDADES
-			estaVivo : true
+			estaVivo : true,
+			z:1
 		});
 		this.add("2d, platformerControls, animation, tween");
-		
-		//escucho cuando colisiono por abajo con la tuberia
-		this.on( "bump.bottom", function(colision){
+
+		//escucho cuando colisiono por abajo con la tuberia de entrada
+		this.on("bump.bottom", function(colision) {
 			//revisar si colsione con una TuberiaEntrada y su pulse flecha abajo
-			if( colision.obj.isA("TuberiaEntrada") && Q.inputs["down"] ){
+			if (colision.obj.isA("TuberiaEntrada") && Q.inputs["down"]) {
 				//llamar a la escena del subterranea
-				Q.stageScene("mundo1Subterraneo", 2);	
+				Q.audio.stop("tema_superficie.mp3");
+				Q.stageScene("mundo1Subterraneo", 2);
 			}
-		} );
-		
+		});
+
+		//escuchar colision por la derecha con la tuberia de salida
+		this.on("bump.right", function(colision) {
+
+			if (colision.obj.isA("TuberiaSalida") && Q.inputs["right"]) {
+				//llamar al mundo original
+				//darle stop al mundo subterraneo
+				this.stage.stop();
+
+				//activar la escena previa (mundo1)
+				this.p.escena_previa.start();
+				
+				//asignar coordenadas aleatorias
+				this.p.x = 800;
+				this.p.y = 60;
+
+				//el atributo stage de mario debe ser el mundo1
+				this.stage = this.p.escena_previa;
+			}
+		});
+
 		//-- ESCUCHAMOS EL EVENTO casiMuerto, que detona el trigger
 		// de la animacion morir
-		this.on("casiMuerto",this,function(){
-			
+		this.on("casiMuerto", this, function() {
+
 			//DESHABILITAMOS LA GRAVEDAD PARA ESTE SPRITE
-			this.del("2d");			
-			
+			this.del("2d");
+
 			//EJECTUAMOS ANIMACION TWEEN
-			
+
 			this.animate({
 				//mueve el sprite a la posicion y indicada
-				y:this.p.y - 100
-			},0.5,{
-				//esta funcion se ejecuta cuando ya haya 
+				y : this.p.y - 100
+			}, 0.5, {
+				//esta funcion se ejecuta cuando ya haya
 				//terminado la animacion tween que lleva al mario
 				//hacia arriba
-				callback:function(){
-					
+				callback : function() {
+
 					//EJECUTAMOS OTRA ANIMACION TWEEN
 					//PARA SACAR A MARIO DEL ESCENARIO
 					this.animate({
 						//obtenemos la altura del juego(escenario)
-						//y animamos a  mario para que se vaya hasta el fondo
-						y:Q("TileLayer").first().p.h 
-					}, 0.5,{
+						//y animamos a mario para que se vaya hasta el fondo
+						y : Q("TileLayer").first().p.h
+					}, 0.5, {
 						//se ejecuta cuando ya terminamos de sacar a mario
 						//del escenario
-						callback:function(){
-							
+						callback : function() {
+
 							//DESTRUIMOS AL JUGADOR
 							this.destroy();
 						}
 					});
-					
+
 				}
 			});
-			
+
 		});
 
 		//escuchamos si al mario le pegan por los costados
@@ -103,37 +125,37 @@ Q.Sprite.extend("Jugador", {
 
 				//deshabilita los controles de este jugador
 				this.p.ignoreControls = true;
-				
+
 				//indicamos que mario ya esta muerto
 				this.p.estaVivo = false;
-				
+
 				//---- QUE TENDRIAN QUE CAMBIAR PARA QUE SOLO
 				//CON UNA FUNCION AUXILIAR Y USANDO UN BLOQUE forEach
 				//--- DESHABILITEN A TODOS LOS ENEMIGOS-----
-				
+
 				//DETENEMOS A TODOS LOS ENEMIGOS
 				//Q(NOMBRE) les regresa un arreglo javascript
 				//con todos los sprites que son de esa clase
 				//items son todos los goombas
-				Q("Goomba").items.forEach(function(enemigo){
+				Q("Goomba").items.forEach(function(enemigo) {
 					//por cada goomba (enemigo)
 					//le quitamos su velocidad
 					enemigo.p.vx = 0;
 					//deshabilita las animaciones del sprite(enemigo)
-					enemigo.p.animation = null;					
+					enemigo.p.animation = null;
 				});
-				
-				Q("TortugaVerde").items.forEach(function(enemigo){
+
+				Q("TortugaVerde").items.forEach(function(enemigo) {
 					//por cada goomba (enemigo)
 					//le quitamos su velocidad
 					enemigo.p.vx = 0;
 					//deshabilita las animaciones del sprite(enemigo)
-					enemigo.p.animation = null;					
+					enemigo.p.animation = null;
 				});
 
 				//ejecutamos la animacion de que muere
 				this.play("muere");
-				
+
 				//DETENEMOS TODOS LOS AUDIOS DEL JUEGO
 				Q.audio.stop();
 				Q.audio.play("mario_muere.mp3");
@@ -174,4 +196,4 @@ Q.Sprite.extend("Jugador", {
 		}
 
 	}
-});
+}); 
